@@ -17,7 +17,7 @@ export default {
     slug: 'ultimate-app',
     privacy: 'public',
     platforms: ['ios', 'android'],
-    version: '2.0.0',
+    version: '2.1.0',
     githubUrl: 'https://github.com/disc-in/UltimateApp',
     orientation: 'portrait',
     scheme: 'discin',
@@ -30,14 +30,14 @@ export default {
     },
     assetBundlePatterns: ['assets/**/*'],
     updates: {
-      url: 'https://u.expo.dev/e2242930-ad3a-4007-afc1-f9c47c174979',
+      //      url: 'https://u.expo.dev/e2242930-ad3a-4007-afc1-f9c47c174979',
     },
     runtimeVersion: {
       policy: 'sdkVersion',
     },
     ios: {
       bundleIdentifier: 'com.discin.discin',
-      buildNumber: '2.0.0',
+      buildNumber: '2.1.0',
       supportsTablet: true,
       infoPlist: {
         CFBundleAllowMixedLocalizations: true,
@@ -45,13 +45,13 @@ export default {
     },
     android: {
       package: 'com.discin.discin',
-      versionCode: 9,
+      versionCode: 10,
       permissions: [],
     },
     plugins: ['expo-localization'],
     extra: {
       eas: {
-        projectId: 'e2242930-ad3a-4007-afc1-f9c47c174979',
+        //        projectId: 'e2242930-ad3a-4007-afc1-f9c47c174979',
       },
       ...Config,
     },
