@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { View, ActivityIndicator, StyleSheet, Text } from 'react-native';
-import { Video, Audio, VideoFullscreenUpdate, ResizeMode } from 'expo-av';
+import { useVideoPlayer, VideoView, FullscreenUpdate } from 'expo-video';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -8,9 +8,22 @@ import I18n from '../../utils/i18n';
 import theme from '../../styles/theme.style';
 
 const VimeoVideo = ({ vimeoId, sounds, shouldPlay }) => {
-  const videoElem = useRef(null);
+  const [videoUrl, setVideoUrl] = useState(null);
   const [isBuffering, setBuffer] = useState(true);
   const [error, setError] = useState();
+  const playerRef = useRef(null);
+
+  const player = useVideoPlayer(videoUrl, (player) => {
+    if (videoUrl) {
+      player.loop = true;
+      player.muted = !sounds;
+      if (shouldPlay) {
+        player.play();
+      }
+      // Store the player in a ref so we can access it in the cleanup function
+      playerRef.current = player;
+    }
+  });
 
   useEffect(() => {
     const vimeoUrlSource = `https://player.vimeo.com/video/${vimeoId}/config`;
@@ -29,9 +42,8 @@ const VimeoVideo = ({ vimeoId, sounds, shouldPlay }) => {
       })
       .then((url) => {
         if (aborted) return;
-        return videoElem.current.loadAsync({
-          uri: url,
-        });
+        setVideoUrl(url);
+        setBuffer(false);
       })
       .catch((e) => {
         if (aborted) return;
@@ -46,25 +58,12 @@ const VimeoVideo = ({ vimeoId, sounds, shouldPlay }) => {
   useFocusEffect(
     React.useCallback(() => {
       return () => {
-        videoElem.current?.pauseAsync();
+        if (playerRef.current) {
+          playerRef.current.pause();
+        }
       };
     }, []),
   );
-
-  const playVideoLoaded = () => {
-    Audio.setAudioModeAsync({
-      playsInSilentModeIOS: true,
-    });
-    videoElem.current.setStatusAsync({
-      rate: 1.0,
-      isMuted: !sounds,
-      resizeMode: ResizeMode.CONTAIN,
-      shouldPlay: shouldPlay || false,
-      isLooping: true,
-    });
-
-    setBuffer(false);
-  };
 
   const renderBufferIcon = () => {
     return (
@@ -87,22 +86,21 @@ const VimeoVideo = ({ vimeoId, sounds, shouldPlay }) => {
     <View style={styles.videoContainer}>
       {error && renderError()}
       {isBuffering && renderBufferIcon()}
-      <Video
-        ref={videoElem}
-        resizeMode={ResizeMode.CONTAIN}
-        useNativeControls
-        style={{ width: '100%', height: 250 }}
-        onLoadStart={() => setBuffer(true)}
-        onLoad={playVideoLoaded}
-        onFullscreenUpdate={async ({ fullscreenUpdate }) => {
-          if (fullscreenUpdate === VideoFullscreenUpdate.PLAYER_WILL_PRESENT) {
-            await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_LEFT);
-          }
-          if (fullscreenUpdate === VideoFullscreenUpdate.PLAYER_WILL_DISMISS) {
-            await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
-          }
-        }}
-      />
+      {videoUrl && (
+        <VideoView
+          style={{ width: '100%', height: 250 }}
+          player={player}
+          allowsFullscreen
+          onFullscreenUpdate={async ({ fullscreenUpdate }) => {
+            if (fullscreenUpdate === FullscreenUpdate.WILL_PRESENT) {
+              await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_LEFT);
+            }
+            if (fullscreenUpdate === FullscreenUpdate.WILL_DISMISS) {
+              await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
+            }
+          }}
+        />
+      )}
     </View>
   );
 };
