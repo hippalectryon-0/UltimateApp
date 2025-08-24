@@ -21,3 +21,6 @@ web-report/
 .env
 .env.*
 !.env.example
+
+# Device-specific
+/.expo/
