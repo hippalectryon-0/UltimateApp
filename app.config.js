@@ -35,6 +35,7 @@ export default {
     runtimeVersion: {
       policy: 'sdkVersion',
     },
+    //    newArchEnabled: true,
     ios: {
       bundleIdentifier: 'com.discin.discin',
       buildNumber: '2.1.0',
