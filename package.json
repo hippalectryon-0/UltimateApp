@@ -28,6 +28,7 @@
     "expo-linking": "~6.2.2",
     "expo-localization": "~14.8.4",
     "expo-mail-composer": "~12.7.1",
+    "expo-modules-core": "~1.11.14",
     "expo-screen-orientation": "~6.4.1",
     "expo-splash-screen": "~0.26.5",
     "expo-updates": "~0.24.13",
