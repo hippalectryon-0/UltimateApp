@@ -1,71 +1,34 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { View, ActivityIndicator, StyleSheet, Text } from 'react-native';
-import { useVideoPlayer, VideoView, FullscreenUpdate } from 'expo-video';
-import * as ScreenOrientation from 'expo-screen-orientation';
-import { useFocusEffect } from '@react-navigation/native';
-
+import { WebView } from 'react-native-webview';
 import I18n from '../../utils/i18n';
 import theme from '../../styles/theme.style';
 
 const VimeoVideo = ({ vimeoId, sounds, shouldPlay }) => {
-  const [videoUrl, setVideoUrl] = useState(null);
-  const [isBuffering, setBuffer] = useState(true);
-  const [error, setError] = useState();
-  const playerRef = useRef(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  const player = useVideoPlayer(videoUrl, (player) => {
-    if (videoUrl) {
-      player.loop = true;
-      player.muted = !sounds;
-      if (shouldPlay) {
-        player.play();
-      }
-      // Store the player in a ref so we can access it in the cleanup function
-      playerRef.current = player;
-    }
-  });
+  // Vimeo player URL with parameters
+  const vimeoPlayerUrl = `https://player.vimeo.com/video/${vimeoId}?autoplay=${shouldPlay ? 1 : 0}&loop=1&muted=${
+    sounds ? 0 : 1
+  }&transparent=0`;
 
-  useEffect(() => {
-    const vimeoUrlSource = `https://player.vimeo.com/video/${vimeoId}/config`;
-    let aborted = false;
-    setBuffer(true);
-    setError(null);
+  const onError = () => {
+    setError(true);
+    setIsLoading(false);
+  };
 
-    fetch(vimeoUrlSource)
-      .then((res) => res.json())
-      .then((res) => {
-        const videoArray = res.request.files.progressive;
-        const videoVimeoQuality = videoArray.find((videoObject) => videoObject.quality === '540p');
-        if (videoVimeoQuality) {
-          return videoVimeoQuality.url;
-        }
-      })
-      .then((url) => {
-        if (aborted) return;
-        setVideoUrl(url);
-        setBuffer(false);
-      })
-      .catch((e) => {
-        if (aborted) return;
-        setError(e);
-        setBuffer(false);
-      });
+  const onLoad = () => {
+    setIsLoading(false);
+  };
 
-    return () => (aborted = true);
-  }, [vimeoId]);
+  const onLoadEnd = () => {
+    setIsLoading(false);
+  };
 
-  // Stop playing the video on screen change
-  useFocusEffect(
-    React.useCallback(() => {
-      return () => {
-        if (playerRef.current) {
-          playerRef.current.pause();
-        }
-      };
-    }, []),
-  );
+  const renderLoader = () => {
+    if (!isLoading) return null;
 
-  const renderBufferIcon = () => {
     return (
       <View style={styles.spinnerStyle}>
         <ActivityIndicator animating color={theme.COLOR_SECONDARY} size="large" />
@@ -75,6 +38,8 @@ const VimeoVideo = ({ vimeoId, sounds, shouldPlay }) => {
   };
 
   const renderError = () => {
+    if (!error) return null;
+
     return (
       <View style={styles.spinnerStyle}>
         <Text>{I18n.t('vimeoVideo.error')}</Text>
@@ -84,36 +49,44 @@ const VimeoVideo = ({ vimeoId, sounds, shouldPlay }) => {
 
   return (
     <View style={styles.videoContainer}>
-      {error && renderError()}
-      {isBuffering && renderBufferIcon()}
-      {videoUrl && (
-        <VideoView
-          style={{ width: '100%', height: 250 }}
-          player={player}
-          allowsFullscreen
-          onFullscreenUpdate={async ({ fullscreenUpdate }) => {
-            if (fullscreenUpdate === FullscreenUpdate.WILL_PRESENT) {
-              await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_LEFT);
-            }
-            if (fullscreenUpdate === FullscreenUpdate.WILL_DISMISS) {
-              await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
-            }
-          }}
-        />
-      )}
+      {renderLoader()}
+      {renderError()}
+      <WebView
+        source={{ uri: vimeoPlayerUrl }}
+        style={styles.webView}
+        javaScriptEnabled
+        domStorageEnabled
+        onError={onError}
+        onLoad={onLoad}
+        onLoadEnd={onLoadEnd}
+        mediaPlaybackRequiresUserAction={false}
+        allowsInlineMediaPlayback
+        scrollEnabled={false}
+        bounces={false}
+        originWhitelist={['*']}
+      />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   videoContainer: {
-    flex: 1,
     height: 250,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: '#000',
+  },
+  webView: {
+    width: '100%',
+    height: 250,
   },
   spinnerStyle: {
     position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#000',
   },
 });
 
