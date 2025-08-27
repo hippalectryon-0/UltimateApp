@@ -49,7 +49,7 @@ export default {
       versionCode: 10,
       permissions: [],
     },
-    plugins: ['expo-localization'],
+    plugins: ['expo-localization', 'expo-audio'],
     extra: {
       eas: {
         //        projectId: 'e2242930-ad3a-4007-afc1-f9c47c174979',

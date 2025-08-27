@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, ActivityIndicator, StyleSheet, Text } from 'react-native';
-import { WebView } from 'react-native-webview';
+import { Vimeo } from 'react-native-vimeo-iframe';
 import I18n from '../../utils/i18n';
 import theme from '../../styles/theme.style';
 
@@ -8,21 +8,20 @@ const VimeoVideo = ({ vimeoId, sounds, shouldPlay }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
 
-  // Vimeo player URL with parameters
-  const vimeoPlayerUrl = `https://player.vimeo.com/video/${vimeoId}?autoplay=${shouldPlay ? 1 : 0}&loop=1&muted=${
-    sounds ? 0 : 1
-  }&transparent=0`;
+  // Vimeo player options
+  const videoOptions = {
+    autoplay: shouldPlay,
+    loop: true,
+    muted: !sounds, // Invert sounds to get muted
+  };
 
-  const onError = () => {
+  const onError = (errorMessage) => {
+    console.error('Vimeo video error:', errorMessage);
     setError(true);
     setIsLoading(false);
   };
 
-  const onLoad = () => {
-    setIsLoading(false);
-  };
-
-  const onLoadEnd = () => {
+  const onReady = () => {
     setIsLoading(false);
   };
 
@@ -51,20 +50,7 @@ const VimeoVideo = ({ vimeoId, sounds, shouldPlay }) => {
     <View style={styles.videoContainer}>
       {renderLoader()}
       {renderError()}
-      <WebView
-        source={{ uri: vimeoPlayerUrl }}
-        style={styles.webView}
-        javaScriptEnabled
-        domStorageEnabled
-        onError={onError}
-        onLoad={onLoad}
-        onLoadEnd={onLoadEnd}
-        mediaPlaybackRequiresUserAction={false}
-        allowsInlineMediaPlayback
-        scrollEnabled={false}
-        bounces={false}
-        originWhitelist={['*']}
-      />
+      <Vimeo videoId={vimeoId} onReady={onReady} onError={onError} style={styles.video} options={videoOptions} />
     </View>
   );
 };
@@ -74,7 +60,7 @@ const styles = StyleSheet.create({
     height: 250,
     backgroundColor: '#000',
   },
-  webView: {
+  video: {
     width: '100%',
     height: 250,
   },
