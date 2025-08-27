@@ -30,7 +30,7 @@ export default {
     },
     assetBundlePatterns: ['assets/**/*'],
     updates: {
-      //      url: 'https://u.expo.dev/e2242930-ad3a-4007-afc1-f9c47c174979',
+      url: 'https://u.expo.dev/e2242930-ad3a-4007-afc1-f9c47c174979',
     },
     runtimeVersion: {
       policy: 'sdkVersion',
@@ -52,7 +52,7 @@ export default {
     plugins: ['expo-localization', 'expo-audio'],
     extra: {
       eas: {
-        //        projectId: 'e2242930-ad3a-4007-afc1-f9c47c174979',
+        projectId: 'e2242930-ad3a-4007-afc1-f9c47c174979',
       },
       ...Config,
     },
