@@ -4,7 +4,7 @@ import { Vimeo } from 'react-native-vimeo-iframe';
 import I18n from '../../utils/i18n';
 import theme from '../../styles/theme.style';
 
-const VimeoVideo = ({ vimeoId, sounds, shouldPlay }) => {
+const VimeoVideo = ({ vimeoId, sounds, shouldPlay = true }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
 
